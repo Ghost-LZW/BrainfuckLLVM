@@ -1,0 +1,3 @@
+// the configured options and settings for Brainfuck
+#define Brainfuck_VERSION_MAJOR @Brainfuck_VERSION_MAJOR@
+#define Brainfuck_VERSION_MINOR @Brainfuck_VERSION_MINOR@
