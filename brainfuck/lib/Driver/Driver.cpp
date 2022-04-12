@@ -4,7 +4,7 @@
 #   Author        : lanzongwei
 #   Email         : lanzongwei541@gmail.com
 #   File Name     : Driver.cpp
-#   Last Modified : 2022-04-10 23:19
+#   Last Modified : 2022-04-27 17:47
 #   Describe      :
 #
 # ====================================================*/
@@ -28,5 +28,4 @@ struct StdinStream {
 void Driver::Run() {
   ExprParser<StdinStream> parse;
   parse.Parse();
-  std::cout << std::boolalpha << std::cin.operator bool() << std::endl;
 }
