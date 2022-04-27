@@ -5,4 +5,5 @@ repos:
     hooks:
       - id: clang-format
         args: [-i, --style=LLVM]
+      - id: clang-tidy
 
