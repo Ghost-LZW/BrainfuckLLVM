@@ -4,7 +4,7 @@
 #   Author        : lanzongwei
 #   Email         : lanzongwei541@gmail.com
 #   File Name     : ExprParser.hpp
-#   Last Modified : 2022-04-27 21:09
+#   Last Modified : 2022-04-28 16:03
 #   Describe      :
 #
 # ====================================================*/
@@ -22,16 +22,17 @@ namespace brainfuck {
 
 template <typename InputStream> class ExprParser {
 public:
-  void Parse() {
+  llvm::Module *Parse() {
     BaseAST::Initialize();
-    BaseAST::Print();
+    if (verbose_)
+      BaseAST::Print();
     Token token;
-    while (std::fprintf(stderr, "ready>"), token_stream_ >> token) {
+    while (error("ready>"), token_stream_ >> token && token != Token::TK_EOF) {
       switch (token) {
-      case Token::TK_EOF:
-        return;
-      case Token::TK_UNKNOW:
-        std::fprintf(stderr, "unknow token receive"), std::abort();
+      case Token::TK_UNKNOW: {
+        error("unknow token receive, ignore");
+        break;
+      }
       case Token::TK_JIFORWARD:
       case Token::TK_JIBACK: {
         HandleJumpExpr(token);
@@ -41,10 +42,19 @@ public:
         HandleUnaryExpr(token);
       }
     }
-    BaseAST::Print();
+    BaseAST::Finalize();
+    return BaseAST::module();
   }
 
+  void SetVerbose(bool verbose) { verbose_ = verbose; }
+
 private:
+  void error(const char *msg) {
+    if (!verbose_)
+      return;
+    std::fprintf(stderr, "%s", msg);
+  }
+
   std::unique_ptr<ExprAST> ParseUnaryExpr(Token token) {
     switch (token) {
     case Token::TK_ADD:
@@ -67,10 +77,12 @@ private:
 
   void HandleUnaryExpr(Token token) {
     auto expr = ParseUnaryExpr(token);
-    if (expr)
-      expr->CodeGen()->print(llvm::errs()), fprintf(stderr, "\n");
-    else {
-      std::fprintf(stderr, "[WARN] can't parse expr");
+    if (expr) {
+      auto val = expr->CodeGen();
+      if (verbose_)
+        val->print(llvm::errs()), fprintf(stderr, "\n");
+    } else {
+      error("[WARN] can't parse expr");
     }
 
     return;
@@ -80,13 +92,15 @@ private:
     static std::stack<WhileAST> wst;
     if (token == Token::TK_JIFORWARD) {
       wst.emplace();
-      wst.top().CodeGen()->print(llvm::errs());
-      fprintf(stderr, "\n");
+      auto val = wst.top().CodeGen();
+      if (verbose_)
+        val->print(llvm::errs()), fprintf(stderr, "\n");
       return;
     }
+
     assert(!wst.empty() && "unmatch ] !");
+
     wst.top().CodeGen();
-    fprintf(stderr, "\n");
     wst.pop();
 
     return;
@@ -94,6 +108,8 @@ private:
 
 private:
   TokenStream<InputStream> token_stream_;
+
+  bool verbose_ = true;
 };
 
 } // namespace brainfuck

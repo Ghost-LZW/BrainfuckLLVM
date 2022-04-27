@@ -4,7 +4,7 @@
 #   Author        : lanzongwei
 #   Email         : lanzongwei541@gmail.com
 #   File Name     : ExprAST.cpp
-#   Last Modified : 2022-04-27 21:04
+#   Last Modified : 2022-04-28 14:47
 #   Describe      :
 #
 # ====================================================*/
@@ -29,15 +29,23 @@ void BaseAST::Initialize(int alloc_size) {
   builder_.SetInsertPoint(llvm::BasicBlock::Create(context_, "entry", main_));
   data_ = builder_.CreateAlloca(builder_.getInt8PtrTy(), nullptr, "data");
   ptr_ = builder_.CreateAlloca(builder_.getInt8PtrTy(), nullptr, "ptr");
-  auto calloc =
-      module_.getOrInsertFunction("calloc", builder_.getInt8PtrTy(),
-                                  builder_.getInt64Ty(), builder_.getInt64Ty());
-  llvm::Value *data = builder_
-                          .CreateCall(calloc, {builder_.getInt64(alloc_size),
-                                               builder_.getInt64(1)})
-                          ->getCalledOperand();
+  auto calloc = module_.getOrInsertFunction(
+      "calloc", llvm::FunctionType::get(
+                    llvm::Type::getInt8PtrTy(context_),
+                    {builder_.getInt64Ty(), builder_.getInt64Ty()}, false));
+  llvm::Value *data = builder_.CreateCall(
+      calloc, {builder_.getInt64(alloc_size), builder_.getInt64(1)});
   builder_.CreateStore(data, data_);
   builder_.CreateStore(data, ptr_);
+}
+
+void BaseAST::Finalize() {
+  auto free = module_.getOrInsertFunction("free", builder_.getVoidTy(),
+                                          builder_.getInt8PtrTy());
+  builder_.CreateCall(free,
+                      {builder_.CreateLoad(builder_.getInt8PtrTy(), data_)});
+
+  builder_.CreateRet(builder_.getInt32(0));
 }
 
 llvm::Value *MoveExprAST::CodeGen() {
