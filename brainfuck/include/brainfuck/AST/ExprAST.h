@@ -4,7 +4,7 @@
 #   Author        : lanzongwei
 #   Email         : lanzongwei541@gmail.com
 #   File Name     : ExprAST.h
-#   Last Modified : 2022-04-27 21:04
+#   Last Modified : 2022-04-28 00:27
 #   Describe      :
 #
 # ====================================================*/
@@ -37,6 +37,8 @@ public:
 
   static void Initialize(int alloc_size = 40000);
   static void Print() { module_.print(llvm::errs(), nullptr); }
+  static void Finalize();
+  static llvm::Module *module() { return &module_; }
 
 protected:
   static inline llvm::LLVMContext context_;

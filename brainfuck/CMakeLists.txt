@@ -13,7 +13,12 @@ include_directories(${LLVM_INCLUDE_DIRS})
 separate_arguments(LLVM_DEFINITIONS_LIST NATIVE_COMMAND ${LLVM_DEFINITIONS})
 add_definitions(${LLVM_DEFINITIONS_LIST})
 
-llvm_map_components_to_libnames(llvm_libs support core irreader )
+# don't work like expect
+# llvm_map_components_to_libnames(llvm_libs support core irreader x86codegen x86asmparser asmparser asmprinter)
+
+set(llvm_libs "LLVM-13")
+
+message(STATUS "llvm " ${llvm_libs})
 
 set(BrainfuckIncludePath ${CMAKE_CURRENT_SOURCE_DIR}/include)
 set(BrainfuckLibraryPath ${CMAKE_CURRENT_SOURCE_DIR}/lib)
