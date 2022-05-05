@@ -32,7 +32,7 @@ private:
   std::string filename_;
   std::string objectname_;
 
-  const std::string LD_CMD = "cc -g -no-pie -o ";
+  const std::string LD_CMD = "cc -g -o ";
 };
 
 } // namespace brainfuck

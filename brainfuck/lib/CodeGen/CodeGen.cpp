@@ -14,19 +14,19 @@
 #include <cstdlib>
 #include <system_error> // for error_code
 
-#include "llvm/ADT/Optional.h"           // for Optional
-#include "llvm/ADT/StringRef.h"          // for StringRef
-#include "llvm/IR/LegacyPassManager.h"   // for PassManager
-#include "llvm/IR/Module.h"              // for Module
-#include "llvm/IR/Verifier.h"            // for Module
-#include "llvm/Support/CodeGen.h"        // for Model, CGFT_ObjectFile
-#include "llvm/Support/FileSystem.h"     // for OF_None
-#include "llvm/Support/Host.h"           // for getDefaultTargetTriple
-#include "llvm/Support/TargetRegistry.h" // for Target, TargetRegistry
-#include "llvm/Support/TargetSelect.h"   // for InitializeAllAsmParsers
-#include "llvm/Support/raw_ostream.h"    // for errs, raw_fd_ostream, raw_o...
-#include "llvm/Target/TargetMachine.h"   // for TargetMachine
-#include "llvm/Target/TargetOptions.h"   // for TargetOptions
+#include "llvm/ADT/Optional.h"         // for Optional
+#include "llvm/ADT/StringRef.h"        // for StringRef
+#include "llvm/IR/LegacyPassManager.h" // for PassManager
+#include "llvm/IR/Module.h"            // for Module
+#include "llvm/IR/Verifier.h"          // for Module
+#include "llvm/MC/TargetRegistry.h"    // for Target, TargetRegistry
+#include "llvm/Support/CodeGen.h"      // for Model, CGFT_ObjectFile
+#include "llvm/Support/FileSystem.h"   // for OF_None
+#include "llvm/Support/Host.h"         // for getDefaultTargetTriple
+#include "llvm/Support/TargetSelect.h" // for InitializeAllAsmParsers
+#include "llvm/Support/raw_ostream.h"  // for errs, raw_fd_ostream, raw_o...
+#include "llvm/Target/TargetMachine.h" // for TargetMachine
+#include "llvm/Target/TargetOptions.h" // for TargetOptions
 
 namespace brainfuck {
 
@@ -37,7 +37,7 @@ int ObjectGenerator::CodeGen() {
   llvm::InitializeAllAsmParsers();
   llvm::InitializeAllAsmPrinters();
 
-  llvm::verifyModule(*mod_);
+  // llvm::verifyModule(*mod_);
 
   std::string Error;
   auto TargetTriple = llvm::sys::getDefaultTargetTriple();

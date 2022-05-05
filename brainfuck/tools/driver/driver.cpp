@@ -25,6 +25,9 @@ int main(int Argc, const char **Argv) {
   llvm::cl::opt<std::string> OutputFilename(
       "o", llvm::cl::desc("Specify output filename"),
       llvm::cl::value_desc("filename"));
+  llvm::cl::opt<std::string> IROutputFilename(
+      "ir", llvm::cl::desc("Enable and Specify ir output filename"),
+      llvm::cl::value_desc("ir filename"));
   llvm::cl::opt<std::string> InputFilename(llvm::cl::Positional,
                                            llvm::cl::desc("<input file>"));
 
@@ -35,7 +38,7 @@ int main(int Argc, const char **Argv) {
   if (!InputFilename.empty())
     driver.SetInputfile(InputFilename);
   if (!OutputFilename.empty())
-    driver.SetObjectName(OutputFilename);
+    driver.SetObjectName(OutputFilename, IROutputFilename);
 
   driver.Run();
 }

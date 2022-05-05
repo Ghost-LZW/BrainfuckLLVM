@@ -21,8 +21,11 @@ class Driver {
 public:
   void Run();
   void SetFilename(const std::string &filename) { filename_ = filename; }
-  void SetObjectName(const std::string &objectname) {
+  void SetObjectName(const std::string &objectname,
+                     const std::string &irfilename = "") {
     objectname_ = objectname;
+    if (!irfilename.empty())
+      filename_ = irfilename;
   }
   void SetInputfile(const std::string &inputfile) { inputfile_ = inputfile; }
 
