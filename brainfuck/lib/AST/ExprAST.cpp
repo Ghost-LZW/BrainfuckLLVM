@@ -29,12 +29,14 @@ void BaseAST::Initialize(int alloc_size) {
   builder_.SetInsertPoint(llvm::BasicBlock::Create(context_, "entry", main_));
   data_ = builder_.CreateAlloca(builder_.getInt8PtrTy(), nullptr, "data");
   ptr_ = builder_.CreateAlloca(builder_.getInt8PtrTy(), nullptr, "ptr");
+
   auto calloc = module_.getOrInsertFunction(
       "calloc", llvm::FunctionType::get(
                     llvm::Type::getInt8PtrTy(context_),
                     {builder_.getInt64Ty(), builder_.getInt64Ty()}, false));
   llvm::Value *data = builder_.CreateCall(
       calloc, {builder_.getInt64(alloc_size), builder_.getInt64(1)});
+
   builder_.CreateStore(data, data_);
   builder_.CreateStore(data, ptr_);
 }
@@ -69,27 +71,32 @@ llvm::Value *UnaryExprAST::CodeGen() {
   default:
     assert(false && "unsupport unary opration");
   }
-  llvm::Value *val = builder_.CreateLoad(builder_.getInt8PtrTy(), ptr_);
-  builder_.CreateStore(
-      builder_.CreateAdd(builder_.CreateLoad(builder_.getInt8Ty(), val),
-                         builder_.getInt8(diff)),
-      val);
+  auto *val = builder_.CreateAlignedLoad(builder_.getInt8PtrTy(), ptr_,
+                                         llvm::MaybeAlign(8));
+  auto *data_val = builder_.CreateAlignedLoad(builder_.getInt8Ty(), val,
+                                              llvm::MaybeAlign(8));
+  builder_.CreateAlignedStore(
+      builder_.CreateAdd(data_val, builder_.getInt8(diff)), val,
+      llvm::MaybeAlign(8));
   return val;
 }
 
 llvm::Value *OutputExprAST::CodeGen() {
-  llvm::Value *val = builder_.CreateLoad(builder_.getInt8PtrTy(), ptr_);
+  auto *val = builder_.CreateAlignedLoad(builder_.getInt8PtrTy(), ptr_,
+                                         llvm::MaybeAlign(8));
   return builder_.CreateCall(
       putchar_,
-      builder_.CreateSExt(builder_.CreateLoad(builder_.getInt8Ty(), val),
+      builder_.CreateSExt(builder_.CreateAlignedLoad(builder_.getInt8Ty(), val,
+                                                     llvm::MaybeAlign(8)),
                           builder_.getInt32Ty()));
 }
 
 llvm::Value *InputExprAST::CodeGen() {
-  llvm::Value *val = builder_.CreateLoad(builder_.getInt8PtrTy(), ptr_);
-  builder_.CreateStore(
+  auto *val = builder_.CreateAlignedLoad(builder_.getInt8PtrTy(), ptr_,
+                                         llvm::MaybeAlign(8));
+  builder_.CreateAlignedStore(
       builder_.CreateTrunc(builder_.CreateCall(getchar_), builder_.getInt8Ty()),
-      val);
+      val, llvm::MaybeAlign(8));
   return val;
 }
 
@@ -102,11 +109,13 @@ llvm::Value *WhileAST::CodeGen() {
     builder_.CreateBr(cond_block_);
     builder_.SetInsertPoint(cond_block_);
 
-    llvm::Value *val = builder_.CreateLoad(builder_.getInt8PtrTy(), ptr_);
-    builder_.CreateCondBr(
-        builder_.CreateICmpNE(builder_.CreateLoad(builder_.getInt8Ty(), val),
-                              builder_.getInt8(0)),
-        body_block_, end_block_);
+    auto *val = builder_.CreateAlignedLoad(builder_.getInt8PtrTy(), ptr_,
+                                           llvm::MaybeAlign(8));
+    builder_.CreateCondBr(builder_.CreateICmpNE(builder_.CreateAlignedLoad(
+                                                    builder_.getInt8Ty(), val,
+                                                    llvm::MaybeAlign(8)),
+                                                builder_.getInt8(0)),
+                          body_block_, end_block_);
 
     builder_.SetInsertPoint(body_block_);
     return val;
